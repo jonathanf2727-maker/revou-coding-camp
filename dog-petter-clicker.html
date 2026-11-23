@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dog Petter Clicker 🐶</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ── Animation keyframes (transform + opacity only, no layout reflow) ── */
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      30%       { transform: translateY(-28px); }
+      60%       { transform: translateY(-14px); }
+    }
+
+    @keyframes shake {
+      0%, 100%  { transform: translateX(0); }
+      15%       { transform: translateX(-10px) rotate(-4deg); }
+      30%       { transform: translateX(10px) rotate(4deg); }
+      45%       { transform: translateX(-8px) rotate(-3deg); }
+      60%       { transform: translateX(8px) rotate(3deg); }
+      75%       { transform: translateX(-4px); }
+    }
+
+    @keyframes spin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      20%      { transform: rotate(-12deg); }
+      40%      { transform: rotate(12deg); }
+      60%      { transform: rotate(-8deg); }
+      80%      { transform: rotate(8deg); }
+    }
+
+    @keyframes zoom {
+      0%, 100% { transform: scale(1);    opacity: 1; }
+      40%      { transform: scale(1.35); opacity: 1; }
+      70%      { transform: scale(0.9);  opacity: 0.9; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0)   rotate(0deg); opacity: 1; }
+      25%      { transform: translateY(-12px) rotate(-3deg); }
+      75%      { transform: translateY(-18px) rotate(3deg); opacity: 0.85; }
+    }
+
+    /* Animation utility classes (applied by DogRenderer) */
+    .bounce   { animation: bounce  0.6s ease both; }
+    .shake    { animation: shake   0.6s ease both; }
+    .spin     { animation: spin    0.6s linear both; }
+    .wiggle   { animation: wiggle  0.6s ease both; }
+    .zoom     { animation: zoom    0.6s ease both; }
+    .float    { animation: float   0.6s ease both; }
+
+    /* Speech-bubble tail */
+    #bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 10px 8px 0;
+      border-style: solid;
+      border-color: #fef3c7 transparent transparent;
+    }
+
+    /* Bubble fade transition */
+    #bubble {
+      transition: opacity 0.3s ease;
+    }
+    #bubble.hidden-bubble {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Milestone toast — distinct gold border + slightly larger text */
+    #bubble.milestone-toast {
+      background-color: #fef9c3;
+      border: 2px solid #eab308;
+      color: #713f12;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-sky-100 to-blue-200 flex flex-col items-center justify-center select-none overflow-hidden">
+
+  <!-- ── HUD ─────────────────────────────────────────────────────────── -->
+  <div class="flex gap-8 mb-6 text-center">
+    <div class="bg-white/70 rounded-2xl px-5 py-3 shadow">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Pets</p>
+      <p id="score" class="text-3xl font-black text-indigo-600">0</p>
+    </div>
+    <div class="bg-white/70 rounded-2xl px-5 py-3 shadow">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Streak</p>
+      <p id="streak" class="text-3xl font-black text-pink-500">0</p>
+    </div>
+  </div>
+
+  <!-- ── Dog + bubble wrapper ──────────────────────────────────────────── -->
+  <div class="relative flex flex-col items-center">
+
+    <!-- Speech bubble -->
+    <div
+      id="bubble"
+      class="hidden-bubble absolute -top-16 bg-amber-100 text-gray-800 font-semibold text-lg rounded-2xl px-4 py-2 shadow-md whitespace-nowrap"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <!-- Dog container — the click target -->
+    <div
+      id="dog"
+      class="cursor-pointer w-48 h-48 flex items-center justify-center bg-white rounded-full shadow-xl ring-4 ring-indigo-200 hover:ring-indigo-400 active:scale-95 transition-transform"
+      role="button"
+      aria-label="Pet the dog"
+      tabindex="0"
+    >
+      <!-- Dog SVG and expression face injected / managed by DogRenderer -->
+      <svg
+        id="dog-svg"
+        viewBox="0 0 120 120"
+        width="140"
+        height="140"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <!-- Body (tan circle) -->
+        <circle cx="60" cy="68" r="34" fill="#D4A76A" />
+
+        <!-- Left ear -->
+        <ellipse cx="34" cy="44" rx="13" ry="18" fill="#B5853A" transform="rotate(-15 34 44)" />
+        <!-- Right ear -->
+        <ellipse cx="86" cy="44" rx="13" ry="18" fill="#B5853A" transform="rotate(15 86 44)" />
+
+        <!-- Head (lighter circle) -->
+        <circle cx="60" cy="52" r="30" fill="#E8C07D" />
+
+        <!-- Muzzle -->
+        <ellipse cx="60" cy="62" rx="13" ry="9" fill="#F5D9A0" />
+
+        <!-- Nose -->
+        <ellipse cx="60" cy="57" rx="5" ry="3.5" fill="#4A2E0A" />
+
+        <!-- Face sub-element: expression area (eyes + mouth) swapped by DogRenderer) -->
+        <g id="dog-face">
+          <!-- Default happy eyes -->
+          <path d="M46 47 Q49 44 52 47" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M68 47 Q71 44 74 47" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- Default smile -->
+          <path d="M53 65 Q60 71 67 65" stroke="#4A2E0A" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </g>
+
+        <!-- Tail -->
+        <path d="M94 72 Q110 58 102 46 Q96 38 88 50" stroke="#D4A76A" stroke-width="7" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- Paw-print decoration below dog -->
+    <div class="mt-4 text-4xl opacity-30 pointer-events-none" aria-hidden="true">🐾</div>
+  </div>
+
+  <!-- ── Mute toggle ───────────────────────────────────────────────────── -->
+  <button
+    id="mute-btn"
+    class="mt-8 flex items-center gap-2 bg-white/70 hover:bg-white rounded-full px-5 py-2 shadow text-sm font-semibold text-gray-600 transition"
+    aria-label="Toggle mute"
+    aria-pressed="false"
+  >
+    <span id="mute-icon">🔊</span>
+    <span id="mute-label">Sound on</span>
+  </button>
+
+  <!-- ── All JavaScript will go here ───────────────────────────────────── -->
+  <script>
+    // ─────────────────────────────────────────────────────────────────────────
+    // EXPRESSIONS map — SVG snippets swapped into #dog-face by DogRenderer.
+    // Each snippet replaces only the eyes + mouth region inside the existing SVG.
+    // Static controlled markup; not derived from user input.
+    // ─────────────────────────────────────────────────────────────────────────
+    const EXPRESSIONS = {
+      // ^‿^ closed-arc happy eyes + wide smile
+      happy: `
+        <path d="M46 47 Q49 44 52 47" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M68 47 Q71 44 74 47" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M53 65 Q60 71 67 65" stroke="#4A2E0A" stroke-width="2" fill="none" stroke-linecap="round"/>
+      `,
+      // ♥ heart pupils + big smile
+      love: `
+        <path d="M46 46 C46 43 49 43 49 46 C49 43 52 43 52 46 Q49 50 46 46Z" fill="#E05080"/>
+        <path d="M68 46 C68 43 71 43 71 46 C71 43 74 43 74 46 Q71 50 68 46Z" fill="#E05080"/>
+        <path d="M52 65 Q60 73 68 65" stroke="#4A2E0A" stroke-width="2" fill="none" stroke-linecap="round"/>
+      `,
+      // ○ wide open circular eyes + small "o" mouth
+      surprised: `
+        <circle cx="49" cy="47" r="4.5" fill="#4A2E0A"/>
+        <circle cx="71" cy="47" r="4.5" fill="#4A2E0A"/>
+        <circle cx="49" cy="47" r="2" fill="white"/>
+        <circle cx="71" cy="47" r="2" fill="white"/>
+        <ellipse cx="60" cy="67" rx="4" ry="3" fill="#4A2E0A"/>
+      `,
+      // — drooping half-closed eyes + slight downward curve (sleepy)
+      sleepy: `
+        <path d="M45 48 Q49 46 53 48" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M67 48 Q71 46 75 48" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M45 47 Q49 44 53 47" stroke="#E8C07D" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M67 47 Q71 44 75 47" stroke="#E8C07D" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M55 66 Q60 63 65 66" stroke="#4A2E0A" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <text x="62" y="43" font-size="8" fill="#4A2E0A" opacity="0.7">z</text>
+        <text x="66" y="38" font-size="6" fill="#4A2E0A" opacity="0.5">z</text>
+      `,
+      // ✕ x-shaped dizzy eyes + wavy mouth
+      dizzy: `
+        <line x1="46" y1="44" x2="52" y2="50" stroke="#4A2E0A" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="52" y1="44" x2="46" y2="50" stroke="#4A2E0A" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="68" y1="44" x2="74" y2="50" stroke="#4A2E0A" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="74" y1="44" x2="68" y2="50" stroke="#4A2E0A" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M53 66 Q57 63 60 66 Q63 69 67 66" stroke="#4A2E0A" stroke-width="2" fill="none" stroke-linecap="round"/>
+      `,
+      // ^‿^ happy eyes + open mouth with tongue sticking out
+      tongue: `
+        <path d="M46 47 Q49 44 52 47" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M68 47 Q71 44 74 47" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M53 64 Q60 70 67 64" stroke="#4A2E0A" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="60" cy="69" rx="5" ry="4" fill="#E8698A"/>
+      `,
+      // one closed arc eye + one open dot eye (wink) + small smile
+      wink: `
+        <path d="M46 47 Q49 44 52 47" stroke="#4A2E0A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <circle cx="71" cy="47" r="3.5" fill="#4A2E0A"/>
+        <circle cx="72" cy="46" r="1.2" fill="white"/>
+        <path d="M53 65 Q60 71 67 65" stroke="#4A2E0A" stroke-width="2" fill="none" stroke-linecap="round"/>
+      `,
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ALL_ANIMATION_CLASSES — exhaustive list of CSS animation class names.
+    // Used by DogRenderer to strip all animation state before applying a new one.
+    // ─────────────────────────────────────────────────────────────────────────
+    const ALL_ANIMATION_CLASSES = ['bounce', 'shake', 'spin', 'wiggle', 'zoom', 'float'];
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DogRenderer — owns the dog's visual representation
+    // ─────────────────────────────────────────────────────────────────────────
+    const DogRenderer = {
+      _dogEl: null,
+      _faceEl: null,
+      _currentExpression: 'happy',
+
+      init() {
+        this._dogEl  = document.getElementById('dog');
+        this._faceEl = document.getElementById('dog-face');
+        // Apply the default expression so the face is managed consistently
+        this.setExpression('happy');
+      },
+
+      /**
+       * Swap the active expression by injecting the matching SVG snippet
+       * into #dog-face via innerHTML.
+       * NOTE: EXPRESSIONS values are static controlled markup, not user input.
+       * @param {keyof typeof EXPRESSIONS} expression
+       */
+      setExpression(expression) {
+        if (!EXPRESSIONS[expression]) return;
+        this._currentExpression = expression;
+        // innerHTML is intentional here — EXPRESSIONS is static controlled markup.
+        this._faceEl.innerHTML = EXPRESSIONS[expression];
+      },
+
+      /**
+       * Play a named CSS animation on the dog element.
+       * Strips all current animation classes first, then adds `name` and the
+       * `animating` guard class. After `duration` ms both are removed so the
+       * element is clean for the next call.
+       * @param {string} name     - One of ALL_ANIMATION_CLASSES
+       * @param {number} duration - Animation duration in ms (default 600)
+       */
+      playAnimation(name, duration = 600) {
+        // Remove every animation class and the guard so we start clean.
+        this._dogEl.classList.remove(...ALL_ANIMATION_CLASSES, 'animating');
+
+        // Apply the requested animation and the guard.
+        this._dogEl.classList.add(name, 'animating');
+
+        // Schedule cleanup so the guard is lifted after the animation finishes.
+        setTimeout(() => {
+          this._dogEl.classList.remove(name, 'animating');
+        }, duration);
+      },
+
+      /**
+       * Remove all animation and expression classes, returning the dog to a
+       * neutral visual state. Useful for resetting between game states.
+       */
+      reset() {
+        this._dogEl.classList.remove(...ALL_ANIMATION_CLASSES, 'animating');
+        // Reset the face to the default happy expression.
+        this.setExpression('happy');
+      },
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STREAK_WINDOW_MS — maximum gap (ms) between clicks to continue a streak.
+    // ─────────────────────────────────────────────────────────────────────────
+    const STREAK_WINDOW_MS = 800;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MILESTONES — ordered list of score thresholds and what they unlock.
+    // ─────────────────────────────────────────────────────────────────────────
+    const MILESTONES = [
+      { threshold: 10,  label: 'Good boy energy!',      tier: 'rare' },
+      { threshold: 50,  label: 'Absolute legend!',       tier: 'legendary' },
+      { threshold: 100, label: 'Professional petter!',   tier: null },
+    ];
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ScoreTracker — maintains game state: score, streak, milestones, persistence.
+    // ─────────────────────────────────────────────────────────────────────────
+    const ScoreTracker = (() => {
+      // Default GameState shape
+      const DEFAULT_STATE = () => ({
+        score: 0,
+        streak: 1,
+        lastClickTime: 0,
+        unlockedTiers: ['common'],
+      });
+
+      // Internal mutable state
+      let _state = DEFAULT_STATE();
+
+      // Tracks which milestone thresholds have already fired (never fire twice)
+      let _firedThresholds = new Set();
+
+      /** Attempt to read and parse a GameState from localStorage. Returns null on any failure. */
+      function _loadFromStorage() {
+        try {
+          const raw = localStorage.getItem('dogPetterState');
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          // Validate the minimum required shape
+          if (
+            typeof parsed.score === 'number' &&
+            typeof parsed.streak === 'number' &&
+            typeof parsed.lastClickTime === 'number' &&
+            Array.isArray(parsed.unlockedTiers)
+          ) {
+            return parsed;
+          }
+          return null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      /** Persist the current state to localStorage. Silently ignores any errors. */
+      function _persist() {
+        try {
+          localStorage.setItem('dogPetterState', JSON.stringify(_state));
+        } catch (_) {
+          // localStorage unavailable — continue with in-memory state only
+        }
+      }
+
+      return {
+        /**
+         * Restore GameState from localStorage if present and valid;
+         * fall back to in-memory defaults silently.
+         */
+        init() {
+          const saved = _loadFromStorage();
+          if (saved) {
+            _state = saved;
+            // Reconstruct which milestone thresholds have already been crossed
+            _firedThresholds = new Set(
+              MILESTONES
+                .filter(m => _state.score >= m.threshold)
+                .map(m => m.threshold)
+            );
+          } else {
+            _state = DEFAULT_STATE();
+            _firedThresholds = new Set();
+          }
+        },
+
+        /**
+         * Increment score by 1, evaluate the streak window, check milestones,
+         * persist state, and return a PetResult.
+         * @returns {{ score: number, streak: number, milestoneUnlocked: object|null }}
+         */
+        increment() {
+          _state.score += 1;
+
+          const now = Date.now();
+          if ((now - _state.lastClickTime) < STREAK_WINDOW_MS) {
+            _state.streak += 1;
+          } else {
+            _state.streak = 1;
+          }
+          _state.lastClickTime = now;
+
+          // Check milestones in order — return only the first uncrossed one
+          let milestoneUnlocked = null;
+          for (const milestone of MILESTONES) {
+            if (_state.score === milestone.threshold && !_firedThresholds.has(milestone.threshold)) {
+              _firedThresholds.add(milestone.threshold);
+              milestoneUnlocked = milestone;
+              break;
+            }
+          }
+
+          _persist();
+
+          return {
+            score: _state.score,
+            streak: _state.streak,
+            milestoneUnlocked,
+          };
+        },
+
+        /** Return the current score without side effects. */
+        getScore() {
+          return _state.score;
+        },
+
+        /** Return the current streak count. */
+        getStreak() {
+          return _state.streak;
+        },
+
+        /** Reset all state to defaults and clear persisted storage. */
+        reset() {
+          _state = DEFAULT_STATE();
+          _firedThresholds = new Set();
+          try {
+            localStorage.removeItem('dogPetterState');
+          } catch (_) {
+            // silent
+          }
+        },
+      };
+    })();
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // REACTION_CATALOGUE — master list of all reactions across all tiers.
+    // Each entry: { expression, message, animation, sound|null, weight, tier }
+    //   expression : one of the seven named face states
+    //   message    : speech-bubble text
+    //   animation  : one of the six CSS animation names
+    //   sound      : SoundPlayer key, or null for a silent reaction
+    //   weight     : positive integer 1–10 (higher = more frequent)
+    //   tier       : 'common' | 'rare' | 'legendary'
+    // ─────────────────────────────────────────────────────────────────────────
+    const REACTION_CATALOGUE = [
+      // ── Common (5) ──────────────────────────────────────────────────────
+      {
+        expression: 'happy',
+        message: 'Good boy! 🐾',
+        animation: 'bounce',
+        sound: 'boop',
+        weight: 8,
+        tier: 'common',
+      },
+      {
+        expression: 'tongue',
+        message: 'More pets please! 😛',
+        animation: 'wiggle',
+        sound: 'boop',
+        weight: 7,
+        tier: 'common',
+      },
+      {
+        expression: 'wink',
+        message: 'You got me! 😉',
+        animation: 'shake',
+        sound: 'squeak',
+        weight: 6,
+        tier: 'common',
+      },
+      {
+        expression: 'sleepy',
+        message: 'Mmm… so cozy… 😴',
+        animation: 'float',
+        sound: null,
+        weight: 5,
+        tier: 'common',
+      },
+      {
+        expression: 'happy',
+        message: 'Woof! 🐶',
+        animation: 'zoom',
+        sound: 'woof',
+        weight: 7,
+        tier: 'common',
+      },
+
+      // ── Rare (4) ────────────────────────────────────────────────────────
+      {
+        expression: 'love',
+        message: "You're my favorite human! 💖",
+        animation: 'float',
+        sound: 'sparkle',
+        weight: 5,
+        tier: 'rare',
+      },
+      {
+        expression: 'surprised',
+        message: 'Whoa, that tickles! 😲',
+        animation: 'zoom',
+        sound: 'squeak',
+        weight: 4,
+        tier: 'rare',
+      },
+      {
+        expression: 'tongue',
+        message: 'Lick attack! 👅',
+        animation: 'bounce',
+        sound: 'woof',
+        weight: 4,
+        tier: 'rare',
+      },
+      {
+        expression: 'wink',
+        message: 'Secret handshake unlocked! 🤫',
+        animation: 'wiggle',
+        sound: 'sparkle',
+        weight: 3,
+        tier: 'rare',
+      },
+
+      // ── Legendary (3) ───────────────────────────────────────────────────
+      {
+        expression: 'dizzy',
+        message: 'So much love I\'m spinning! ✨',
+        animation: 'spin',
+        sound: 'tada',
+        weight: 2,
+        tier: 'legendary',
+      },
+      {
+        expression: 'love',
+        message: 'MAXIMUM FLOOF ACHIEVED 🌟',
+        animation: 'zoom',
+        sound: 'tada',
+        weight: 2,
+        tier: 'legendary',
+      },
+      {
+        expression: 'surprised',
+        message: 'ULTRA PET COMBO! 🎉',
+        animation: 'shake',
+        sound: 'sparkle',
+        weight: 1,
+        tier: 'legendary',
+      },
+    ];
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ReactionEngine — weighted-random reaction selection from unlocked pool.
+    // ─────────────────────────────────────────────────────────────────────────
+    const ReactionEngine = {
+      /** Flat array of all reactions currently eligible for selection. */
+      _activePools: [],
+
+      /**
+       * Seed the pool with common-tier reactions only.
+       * Called once at app initialisation.
+       */
+      init() {
+        this._activePools = REACTION_CATALOGUE.filter(
+          r => r.tier === 'common' && Number.isInteger(r.weight) && r.weight > 0
+        );
+      },
+
+      /**
+       * Add all reactions of the given tier to the active pool.
+       * Only reactions with a positive integer weight are included.
+       * @param {'common'|'rare'|'legendary'} tier
+       */
+      expandPool(tier) {
+        const toAdd = REACTION_CATALOGUE.filter(
+          r => r.tier === tier && Number.isInteger(r.weight) && r.weight > 0
+        );
+        this._activePools = this._activePools.concat(toAdd);
+      },
+
+      /**
+       * Weighted-random selection from the active pool.
+       *
+       * Algorithm (from design pseudocode):
+       *   1. Sum all weights → totalWeight
+       *   2. roll = Math.random() × totalWeight
+       *   3. Walk the pool accumulating cumulative weight; return the
+       *      first reaction where roll < cumulative
+       *   4. Fallback: return the last element (floating-point safety)
+       *
+       * @param {number} currentScore - Passed for future use; not used in selection.
+       * @returns {object} A Reaction from the active pool.
+       */
+      pick(currentScore) {
+        const pool = this._activePools;
+
+        // Compute total weight of the current pool.
+        let totalWeight = 0;
+        for (const reaction of pool) {
+          totalWeight += reaction.weight;
+        }
+
+        const roll = Math.random() * totalWeight;
+        let cumulative = 0;
+
+        for (const reaction of pool) {
+          cumulative += reaction.weight;
+          if (roll < cumulative) {
+            return reaction;
+          }
+        }
+
+        // Floating-point safety fallback: return the last reaction.
+        return pool[pool.length - 1];
+      },
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MessageBubble — speech-bubble UI element above the dog.
+    //
+    // Rules:
+    //  • All dynamic text is set via textContent exclusively (never innerHTML).
+    //    This prevents XSS (Requirement 10.1).
+    //  • show() cancels any pending hide timer before scheduling a new one,
+    //    so rapid calls never leave stale timers running.
+    //  • The #bubble element uses the CSS class `hidden-bubble` for opacity-0
+    //    with pointer-events:none; removing the class makes it visible (opacity 1
+    //    via the `transition: opacity 0.3s ease` rule in <style>).
+    //  • showMilestone() adds the `milestone-toast` class for distinct styling.
+    // ─────────────────────────────────────────────────────────────────────────
+    const MessageBubble = {
+      _el: null,
+      _hideTimer: null,
+
+      /**
+       * Attach to the #bubble DOM element.
+       * Must be called before any other method.
+       */
+      init() {
+        this._el = document.getElementById('bubble');
+      },
+
+      /**
+       * Display text in the bubble for durationMs, then fade it out.
+       * Cancels any in-flight hide timer so back-to-back calls
+       * always show the latest message for the full duration.
+       *
+       * @param {string} text        - Message to display (set via textContent)
+       * @param {number} durationMs  - Visible duration in ms (default 2000)
+       */
+      show(text, durationMs = 2000) {
+        // Cancel any pending hide so the new message gets its full duration.
+        if (this._hideTimer !== null) {
+          clearTimeout(this._hideTimer);
+          this._hideTimer = null;
+        }
+
+        // Set text safely via textContent (Requirement 10.1).
+        this._el.textContent = text;
+
+        // Make the bubble visible by removing the hidden-bubble class.
+        this._el.classList.remove('hidden-bubble', 'milestone-toast');
+
+        // Schedule the fade-out.
+        this._hideTimer = setTimeout(() => {
+          this.hide();
+          this._hideTimer = null;
+        }, durationMs);
+      },
+
+      /**
+       * Display a milestone label as a toast with a distinct style.
+       * Uses a longer default duration (3000 ms) so the user has time to read it.
+       * Text is set via textContent (Requirement 10.1).
+       *
+       * @param {string} label - Milestone label text
+       */
+      showMilestone(label) {
+        // Cancel any in-flight hide timer.
+        if (this._hideTimer !== null) {
+          clearTimeout(this._hideTimer);
+          this._hideTimer = null;
+        }
+
+        // Set the milestone text safely.
+        this._el.textContent = label;
+
+        // Apply both the visible state and the milestone-specific style.
+        this._el.classList.remove('hidden-bubble');
+        this._el.classList.add('milestone-toast');
+
+        // Milestones stay visible longer so the user can read them.
+        this._hideTimer = setTimeout(() => {
+          this.hide();
+          this._hideTimer = null;
+        }, 3000);
+      },
+
+      /**
+       * Immediately hide the bubble by restoring the hidden-bubble class.
+       * Also strips milestone-toast so a fresh call to show() starts clean.
+       */
+      hide() {
+        this._el.classList.add('hidden-bubble');
+        this._el.classList.remove('milestone-toast');
+      },
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SOUND_MAP — oscillator configs for each named sound cue.
+    // Each entry: { type, freq, duration }
+    //   type     : OscillatorNode waveform ('sine' | 'square' | 'triangle')
+    //   freq     : frequency in Hz
+    //   duration : envelope duration in seconds
+    // ─────────────────────────────────────────────────────────────────────────
+    const SOUND_MAP = {
+      boop:    { type: 'sine',     freq: 440,  duration: 0.15 },
+      squeak:  { type: 'square',   freq: 880,  duration: 0.1  },
+      sparkle: { type: 'sine',     freq: 1200, duration: 0.2  },
+      tada:    { type: 'sine',     freq: 523,  duration: 0.4  },  // C5
+      woof:    { type: 'triangle', freq: 180,  duration: 0.3  },
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SoundPlayer — generates audio cues programmatically via Web Audio API.
+    //
+    // Rules:
+    //  • No external audio files are loaded (Requirement 7.1).
+    //  • AudioContext is created lazily on first play() call to satisfy the
+    //    browser autoplay policy that requires a user gesture (Requirement 7.2).
+    //  • If the browser has no AudioContext support, play() silently no-ops
+    //    and a single console.warn is emitted at init (Requirement 7.5).
+    //  • When muted, no AudioContext nodes are created or started (Requirement 7.3).
+    //  • setMuted(false) re-enables audio for subsequent calls (Requirement 7.4).
+    //  • The mute button is hidden when audio is unsupported (Requirement 7.6).
+    // ─────────────────────────────────────────────────────────────────────────
+    const SoundPlayer = {
+      _muted: false,
+      _supported: true,
+      _ctx: null,
+
+      /**
+       * Detect Web Audio API support. If unsupported, emit one console.warn,
+       * set _supported = false, and hide #mute-btn. Wire the mute button click
+       * handler regardless (it's a no-op when unsupported since the button is hidden).
+       */
+      init() {
+        const AudioCtxCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtxCtor) {
+          console.warn('SoundPlayer: Web Audio API is not supported in this browser. All audio cues will be silent.');
+          this._supported = false;
+          const muteBtn = document.getElementById('mute-btn');
+          if (muteBtn) {
+            muteBtn.style.display = 'none';
+          }
+          return;
+        }
+
+        // Wire the mute button to toggle muted state.
+        const muteBtn = document.getElementById('mute-btn');
+        if (muteBtn) {
+          muteBtn.addEventListener('click', () => {
+            this.setMuted(!this._muted);
+          });
+        }
+      },
+
+      /**
+       * Lazily create and return the AudioContext. If the context exists but is
+       * suspended (e.g. browser autoplay policy), call resume() before returning.
+       * @returns {AudioContext}
+       */
+      _getAudioContext() {
+        const AudioCtxCtor = window.AudioContext || window.webkitAudioContext;
+        if (!this._ctx) {
+          this._ctx = new AudioCtxCtor();
+        }
+        if (this._ctx.state === 'suspended') {
+          this._ctx.resume();
+        }
+        return this._ctx;
+      },
+
+      /**
+       * Play a named sound cue using a one-shot oscillator with a gain envelope.
+       * Returns immediately if muted or unsupported.
+       * @param {'boop'|'squeak'|'sparkle'|'tada'|'woof'} soundName
+       */
+      play(soundName) {
+        if (this._muted || !this._supported) return;
+
+        const config = SOUND_MAP[soundName];
+        if (!config) return;
+
+        const ctx = this._getAudioContext();
+
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.type = config.type;
+        osc.frequency.setValueAtTime(config.freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + config.duration);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + config.duration);
+      },
+
+      /**
+       * Set muted state and update the #mute-btn label text via textContent.
+       * @param {boolean} muted
+       */
+      setMuted(muted) {
+        this._muted = muted;
+
+        const muteIcon  = document.getElementById('mute-icon');
+        const muteLabel = document.getElementById('mute-label');
+
+        if (muteIcon)  muteIcon.textContent  = muted ? '🔇' : '🔊';
+        if (muteLabel) muteLabel.textContent = muted ? 'Sound off' : 'Sound on';
+
+        const muteBtn = document.getElementById('mute-btn');
+        if (muteBtn) {
+          muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+        }
+      },
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // HUD helpers — update score and streak display via textContent.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Update the #score HUD element with the current score.
+     * Uses textContent exclusively (Requirement 10.1).
+     * @param {number} score
+     */
+    function renderScore(score) {
+      document.getElementById('score').textContent = score;
+    }
+
+    /**
+     * Update the #streak HUD element with the current streak.
+     * Uses textContent exclusively (Requirement 10.1).
+     * @param {number} streak
+     */
+    function renderStreak(streak) {
+      document.getElementById('streak').textContent = streak;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // handlePet — unified click/touchend handler for the dog element.
+    //
+    // Rules:
+    //  1. Call event.preventDefault() on touchend to prevent the synthetic
+    //     mouse click that mobile browsers fire after touch (Requirement 1.3).
+    //  2. If the dog is mid-animation (animating class present), score only
+    //     and return early — skip all visual/audio updates (Requirement 2.6).
+    //  3. Otherwise: increment score + streak, pick a reaction, apply the
+    //     visual reaction, conditionally play sound, update HUD, handle
+    //     any milestone that was unlocked (Requirements 1.1–1.5, 2.4–2.5,
+    //     4.4, 5.2–5.4).
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Handle a pet interaction (click or touchend on #dog).
+     * @param {Event} event
+     */
+    function handlePet(event) {
+      // 1. Prevent double-fire on touchend
+      if (event.type === 'touchend') event.preventDefault();
+
+      // 2. If animating: score only, skip visual
+      const dogEl = document.getElementById('dog');
+      if (dogEl.classList.contains('animating')) {
+        ScoreTracker.increment();
+        return;
+      }
+
+      // 3. Update score and streak
+      const result = ScoreTracker.increment();
+
+      // 4. Pick a reaction
+      const reaction = ReactionEngine.pick(result.score);
+
+      // 5. Apply visual reaction
+      DogRenderer.setExpression(reaction.expression);
+      DogRenderer.playAnimation(reaction.animation);
+      MessageBubble.show(reaction.message);
+
+      // 6. Play sound if not null
+      if (reaction.sound !== null) {
+        SoundPlayer.play(reaction.sound);
+      }
+
+      // 7. Update HUD
+      renderScore(result.score);
+      renderStreak(result.streak);
+
+      // 8. Handle milestone
+      if (result.milestoneUnlocked !== null) {
+        if (result.milestoneUnlocked.tier !== null) {
+          ReactionEngine.expandPool(result.milestoneUnlocked.tier);
+        }
+        MessageBubble.showMilestone(result.milestoneUnlocked.label);
+        SoundPlayer.play('tada');
+      }
+    }
+  </script>
+</body>
+</html>

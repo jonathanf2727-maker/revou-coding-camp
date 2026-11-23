@@ -1,0 +1,205 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Scaffold the HTML file with layout, Tailwind CDN, and static structure": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440695808
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440702741
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441058644
+      }
+    ],
+    "2.1 Build the SVG dog character and expression map": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440695996
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441061560
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441113743
+      }
+    ],
+    "2.3 Implement `DogRenderer.playAnimation()` with guard class": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696152
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441116717
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441148566
+      }
+    ],
+    "3.1 Implement core score and streak logic": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696211
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441152106
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441217919
+      }
+    ],
+    "4. Checkpoint — Core logic complete": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696285
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441221099
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441404788
+      }
+    ],
+    "5.1 Define the reaction catalogue and implement weighted pick": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696340
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441407899
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441462040
+      }
+    ],
+    "6. Implement the `MessageBubble` module": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696397
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441465156
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441518615
+      }
+    ],
+    "7.1 Implement programmatic tone generation": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696458
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441521851
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441589141
+      }
+    ],
+    "8.1 Implement `handlePet` following the design pseudocode": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696534
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441592050
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441629907
+      }
+    ],
+    "8.3 Bootstrap initialisation in `DOMContentLoaded`": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696592
+      },
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441632912
+      }
+    ],
+    "9. Final checkpoint — Ensure all tests pass": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795440696645
+      }
+    ],
+    "2. Implement the `DogRenderer` module": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441148690
+      }
+    ],
+    "3. Implement the `ScoreTracker` module": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441217984
+      }
+    ],
+    "5. Implement the `ReactionEngine` module": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441462122
+      }
+    ],
+    "7. Implement the `SoundPlayer` module": [
+      {
+        "executionId": "03cd1a53-30a7-471b-afdf-531f8483ba41",
+        "chatSessionId": "sess_2d10b5c8-a72e-4d88-ba85-b7af58a7c88d",
+        "timestamp": 1795441589237
+      }
+    ]
+  }
+}
